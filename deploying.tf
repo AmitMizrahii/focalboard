@@ -127,8 +127,8 @@ resource "aws_ecs_task_definition" "my_task_definition" {
   memory                   = "512"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  execution_role_arn       = aws_iam_role.ecs_task_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 
 
   container_definitions = jsonencode([{
@@ -172,7 +172,7 @@ resource "aws_ecs_task_definition" "my_task_definition" {
 
 
 
-resource "aws_iam_role" "ecs_task_execution_role" {
+resource "aws_iam_role" "ecs_task_role" {
   name = "focalboard_ecs_task_execution_role"
 
   assume_role_policy = jsonencode({
@@ -213,7 +213,7 @@ resource "aws_iam_policy" "ecs_task_secrets_policy" {
 }
 
 
-resource "aws_iam_role" "ecs_task_role" {
+resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecs_task_role"
 
   assume_role_policy = jsonencode({
