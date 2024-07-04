@@ -6,5 +6,5 @@ locals {
 
 # ECR- docker images repository
 resource "aws_ecr_repository" "my_repository" {
-  name = "focalboard-repo"
+  name = "focalboard"
 }
