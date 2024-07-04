@@ -27,7 +27,7 @@ data "aws_iam_policy_document" "terraform_cloud_admin_assume_policy" {
     condition {
       test     = "StringLike"
       variable = "${var.terraform_cloud_hostname}:sub"
-      values   = ["organization:AmitsMizs:project:Default-Project:workspace:focalboard:run_phase:*"]
+      values   = ["organization:AmitsMizs:project:devops-training-infra:workspace:main:run_phase:*"]
     }
     condition {
       test     = "StringEquals"

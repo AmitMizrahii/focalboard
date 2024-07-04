@@ -25,3 +25,22 @@ variable "openid_provider_certs" {
 }
 
 
+variable "db_credentials" {
+  type = object({
+    username = string
+    password = string
+  })
+
+  sensitive = true
+}
+
+
+variable "image_uri" {
+  type = string
+
+  sensitive = true
+}
+variable "secret_arn" {
+  type      = string
+  sensitive = true
+}
