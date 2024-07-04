@@ -13,6 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v1
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
