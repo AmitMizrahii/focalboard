@@ -160,12 +160,12 @@ resource "aws_ecs_task_definition" "my_task_definition" {
     }]
     secrets = [
       {
-        name      = "FOCALOARD_SECRET"
+        name      = "focalboard/config"
         valueFrom = var.secret_arn
       }
     ]
     entryPoint = ["/bin/sh", "-c"]
-    command    = ["echo $FOCALOARD_SECRET > $MY_JSON_FILE_PATH && your_app_command"]
+    command    = ["echo $focalboard/config > $MY_JSON_FILE_PATH"]
   }])
   tags = local.common_tags
 }
@@ -173,7 +173,7 @@ resource "aws_ecs_task_definition" "my_task_definition" {
 
 
 resource "aws_iam_role" "ecs_task_role" {
-  name = "focalboard_ecs_task_execution_role"
+  name = "focalboard_ecs_task_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -203,10 +203,12 @@ resource "aws_iam_policy" "ecs_task_secrets_policy" {
     Statement = [
       {
         Action = [
-          "secretsmanager:GetSecretValue"
+          "secretsmanager:GetSecretValue",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
         ]
         Effect   = "Allow"
-        Resource = var.secret_arn
+        Resource = [var.secret_arn]
       }
     ]
   })
@@ -214,7 +216,7 @@ resource "aws_iam_policy" "ecs_task_secrets_policy" {
 
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecs_task_role"
+  name = "focalboardecs_task_execution_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -231,7 +233,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy_attachment" {
-  role       = aws_iam_role.ecs_task_role.name
+  role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.ecs_task_secrets_policy.arn
 }
 
