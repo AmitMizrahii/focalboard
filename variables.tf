@@ -1,3 +1,9 @@
+variable "region" {
+  type    = string
+  default = "us-east-1"
+}
+
+
 #######################
 # OIDC CONFIGURATION
 #######################
@@ -24,6 +30,9 @@ variable "openid_provider_certs" {
   sensitive = true
 }
 
+#######################
+# DB CONFIGURATION
+#######################
 
 variable "db_credentials" {
   type = object({
@@ -33,6 +42,10 @@ variable "db_credentials" {
 
   sensitive = true
 }
+variable "db_endpoint" {
+  type      = string
+  sensitive = true
+}
 
 
 variable "image_uri" {
@@ -40,7 +53,4 @@ variable "image_uri" {
 
   sensitive = true
 }
-variable "secret_arn" {
-  type      = string
-  sensitive = true
-}
+

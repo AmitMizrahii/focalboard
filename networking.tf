@@ -149,3 +149,46 @@ resource "aws_vpc_security_group_ingress_rule" "db" {
   to_port                      = 5432
   ip_protocol                  = "tcp"
 }
+
+resource "aws_vpc_security_group_ingress_rule" "db-bastion" {
+  security_group_id = aws_security_group.db-sg.id
+
+  referenced_security_group_id = aws_security_group.bastion.id
+  from_port                    = 5432
+  to_port                      = 5432
+  ip_protocol                  = "tcp"
+}
+
+
+# Security group for bastion
+resource "aws_security_group" "bastion" {
+  name        = "bastion-sg"
+  description = "Security group for bastion host"
+  vpc_id      = aws_vpc.custom.id
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Bastion host
+resource "aws_instance" "bastion" {
+  ami           = "ami-06c68f701d8090592"
+  instance_type = "t2.micro"
+
+  vpc_security_group_ids      = [aws_security_group.bastion.id]
+  subnet_id                   = aws_subnet.public.id
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "Bastion Host"
+  }
+}

@@ -1,7 +1,7 @@
 locals {
   container_name = "focalboard-container"
   container_port = 8000
-  secret_name    = "focalboard/config"
+  # secret_name    = "focalboard/config"
 }
 
 
@@ -30,7 +30,7 @@ resource "aws_ecs_service" "focalboard-service" {
     container_port   = local.container_port
   }
 
-  tags = merge(local.common_tags, { Name = "amit-ecs-service" })
+  tags = merge(local.common_tags, { Name = "focalboard-ecs-service" })
 }
 
 
@@ -53,7 +53,7 @@ resource "aws_security_group" "focalboard-lb" {
 }
 
 resource "aws_lb" "focalboard-lb" {
-  name               = "amit-lb"
+  name               = "focalboard-lb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.focalboard-lb.id]
@@ -130,20 +130,13 @@ resource "aws_ecs_task_definition" "my_task_definition" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
 
-
   container_definitions = jsonencode([{
     name      = local.container_name
     image     = var.image_uri
     cpu       = 256
     memory    = 512
     essential = true
-
-    environment = [
-      {
-        name  = "MY_JSON_FILE_PATH"
-        value = "./config.json"
-      }
-    ]
+    vpc_id    = aws_vpc.custom.id
 
     logConfiguration = {
       logDriver = "awslogs"
@@ -158,22 +151,30 @@ resource "aws_ecs_task_definition" "my_task_definition" {
       hostPort      = local.container_port
       protocol      = "tcp"
     }]
-    secrets = [
-      {
-        name      = "focalboard/config"
-        valueFrom = var.secret_arn
-      }
-    ]
-    entryPoint = ["/bin/sh", "-c"]
-    command    = ["echo $focalboard/config > $MY_JSON_FILE_PATH"]
   }])
   tags = local.common_tags
 }
 
-
-
 resource "aws_iam_role" "ecs_task_role" {
-  name = "focalboard_ecs_task_role"
+  name = "focalboard-ecs-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "focalboard-ecs_task_execution_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -194,48 +195,53 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-resource "aws_iam_policy" "ecs_task_secrets_policy" {
-  name        = "ecs_task_secrets_policy"
-  description = "Policy to allow ECS tasks to access secrets from Secrets Manager"
+# resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
+#   role       = aws_iam_role.ecs_task_execution_role.name
+#   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+# }
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "secretsmanager:GetSecretValue",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
-        ]
-        Effect   = "Allow"
-        Resource = [var.secret_arn]
-      }
-    ]
-  })
-}
+# resource "aws_iam_policy" "ecs_task_secrets_policy" {
+#   name        = "ecs_task_secrets_policy"
+#   description = "Policy to allow ECS tasks to access secrets from Secrets Manager"
+
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action = [
+#           "secretsmanager:GetSecretValue",
+#           "logs:CreateLogStream",
+#           "logs:PutLogEvents"
+#         ]
+#         Effect   = "Allow"
+#         Resource = [var.secret_arn]
+#       }
+#     ]
+#   })
+# }
 
 
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "focalboardecs_task_execution_role"
+# resource "aws_iam_role" "ecs_task_execution_role" {
+#   name = "focalboardecs_task_execution_role"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action = "sts:AssumeRole"
+#         Effect = "Allow"
+#         Principal = {
+#           Service = "ecs-tasks.amazonaws.com"
+#         }
+#       }
+#     ]
+#   })
+# }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy_attachment" {
-  role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = aws_iam_policy.ecs_task_secrets_policy.arn
-}
+# resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy_attachment" {
+#   role       = aws_iam_role.ecs_task_execution_role.name
+#   policy_arn = aws_iam_policy.ecs_task_secrets_policy.arn
+# }
 
 
 # resource "aws_vpc_security_group_ingress_rule" "ecs" {

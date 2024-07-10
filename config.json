@@ -1,0 +1,17 @@
+{
+  "serverRoot": "http://focalboard-lb-1801718568.us-east-1.elb.amazonaws.com",
+  "port": 8000,
+  "dbtype": "postgres",
+  "dbconfig": "postgres://AmitIsADevopsMan:WhatAreYouTalkingAbout69@focalboard.cruoqks8s42q.us-east-1.rds.amazonaws.com/focalboard?sslmode=disable&connect_timeout=10",
+  "postgres_dbconfig": "dbname=focalboard sslmode=disable",
+  "useSSL": false,
+  "webpath": "./pack",
+  "filespath": "./data/files",
+  "telemetry": true,
+  "prometheusaddress": ":9092",
+  "session_expire_time": 2592000,
+  "session_refresh_time": 18000,
+  "localOnly": false,
+  "enableLocalMode": true,
+  "localModeSocketLocation": "/var/tmp/focalboard_local.socket"
+}
